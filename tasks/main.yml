@@ -1,0 +1,32 @@
+---
+- name: Install Nginx and Git
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - git
+    state: present
+    update_cache: true
+  become: true
+
+- name: Clone Lighthouse repository
+  ansible.builtin.git:
+    repo: "https://github.com"
+    dest: "/var/web/lighthouse"
+    version: "master"
+  become: true
+
+- name: Configure Nginx for Lighthouse
+  ansible.builtin.template:
+    src: lighthouse.conf.j2
+    dest: /etc/nginx/sites-available/lighthouse.conf
+    mode: '0644'
+  become: true
+  notify: Restart Nginx
+
+- name: Enable Lighthouse site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/lighthouse.conf
+    dest: /etc/nginx/sites-enabled/lighthouse.conf
+    state: link
+  become: true
+  notify: Restart Nginx
